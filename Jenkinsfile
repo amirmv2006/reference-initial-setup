@@ -65,7 +65,7 @@ pipeline {
                 def skipTestMvnParam = '-DskipUnitTests'
                 try {
                   // You can override the credential to be used
-                  sh "mvn verify -T 2C --no-transfer-progress $skipTestMvnParam $profileArg $customSettings"
+                  sh "mvn verify -Dmaven.repo.local=.m2 -T 2C --no-transfer-progress $skipTestMvnParam $profileArg $customSettings"
                 } finally {
                   junit '**/target/failsafe-reports/*.xml'
                 }
@@ -94,7 +94,7 @@ pipeline {
                     // unit tests should always be runnable in parallel, unless someone broke the law!
                     def parallelParam = '-T 2C'
                     // jacoco check is done on verify phase
-                    sh "mvn verify $sonarGoal --no-transfer-progress $skipTestMvnParam $parallelParam $profileArg $customSettings"
+                    sh "mvn -Dmaven.repo.local=.m2 verify $sonarGoal --no-transfer-progress $skipTestMvnParam $parallelParam $profileArg $customSettings"
                   }
                 } finally {
                   junit '**/target/surefire-reports/*.xml'
