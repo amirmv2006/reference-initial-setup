@@ -6,7 +6,7 @@ pipeline {
   agent none
   parameters {
     string(name: 'profile', defaultValue: 'Jenkins', description: 'Maven profiles to be used when running maven build')
-    string(name: 'mavenRepository', defaultValue: 'http://localhost:8081', description: 'Remote Maven Repository')
+    string(name: 'mavenRepository', defaultValue: 'http://localhost:8081/repository/maven-public/', description: 'Remote Maven Repository')
     booleanParam(name: 'parallel', defaultValue: true, description: 'Run mvn in Parallel')
   }
   stages {
