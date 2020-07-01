@@ -5,7 +5,7 @@ def sonarToken = '4c862f93839d8f4c88adea637d59d91967e8d5c7'
 pipeline {
   agent none
   parameters {
-    stringParam(name: 'profile', defaultValue: 'Jenkins', description: 'Maven profiles to be specified')
+    string(name: 'profile', defaultValue: 'Jenkins', description: 'Maven profiles to be specified')
     booleanParam(name: 'parallel', defaultValue: true, description: 'Run mvn in Parallel')
   }
   stages {
