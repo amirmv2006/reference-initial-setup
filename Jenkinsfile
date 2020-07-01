@@ -1,6 +1,6 @@
 // A Jenkinsfile useful for Verification. Will run UnitTests+Sonar and IntegrationTests for the project
 def sonarUrl = 'http://localhost:9000/'
-def sonarToken = 'aaaaa'
+def sonarToken = '4c862f93839d8f4c88adea637d59d91967e8d5c7'
 
 pipeline {
   agent none
