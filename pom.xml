@@ -17,6 +17,7 @@
 
   <properties>
     <java.version>11</java.version>
+    <it.skip>false</it.skip>
   </properties>
 
   <dependencies>
@@ -49,7 +50,33 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <configuration>
+          <skip>${it.skip}</skip>
+
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 
+  <profiles>
+    <profile>
+      <id>mavenSkipTests</id>
+      <activation>
+        <property>
+          <name>skipTests</name>
+        </property>
+      </activation>
+    </profile>
+    <profile>
+      <id>mavenSkipIntegrationTests</id>
+      <activation>
+        <property>
+          <name>skipIntegrationTests</name>
+        </property>
+      </activation>
+    </profile>
+  </profiles>
 </project>
