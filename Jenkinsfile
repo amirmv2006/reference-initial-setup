@@ -21,9 +21,10 @@ pipeline {
             error('Stopping initial manually triggered build as we only want to get the parameters')
           }
         }
+
         withDockerContainer(
             image: 'maven:3-jdk-8',
-            args: '--net="host" -e MAVEN_REMOTE_REPOSITORY=' + params.mavenRepository,
+            args: '--net="host" -e MAVEN_REMOTE_REPOSITORY='+ params.mavenRepository,
             toolName: env.DOCKER_TOOL_NAME
         ) {
           script {
@@ -42,7 +43,7 @@ pipeline {
             def skipTestMvnParam = '-DskipTests' // tests will be run on later stages in parallel
             def customSettings = '--settings /tmp/settings.xml'
             def profileArg = "-P ${params.profile}"
-            sh "mvn clean install --no-transfer-progress $profileArg $parallelParam $skipTestMvnParam $customSettings"
+            sh "mvn clean install -Dmaven.repo.local=.m2 --no-transfer-progress $profileArg $parallelParam $skipTestMvnParam $customSettings"
             archiveArtifacts "**/target/*.jar"
           } // script
         }
@@ -56,7 +57,7 @@ pipeline {
             script {
               withDockerContainer(
                   image: 'maven:3-jdk-8',
-                  args: '--net="host" -e MAVEN_REMOTE_REPOSITORY=' + params.mavenRepository,
+                  args: '--net="host" -e MAVEN_REMOTE_REPOSITORY='+ params.mavenRepository,
                   toolName: env.DOCKER_TOOL_NAME) {
                 sh 'curl -o /tmp/settings.xml https://raw.githubusercontent.com/amirmv2006/build-jenk/sandbox/generic-maven-settings.xml'
                 def customSettings = '--settings /tmp/settings.xml'
@@ -77,8 +78,8 @@ pipeline {
           steps {
             withDockerContainer(
                 image: 'maven:3-jdk-8',
-                args: '--net="host" -e MAVEN_REMOTE_REPOSITORY=' + params.mavenRepository +
-                    '-e SONAR_HOST_URL="' + sonarUrl + '" -e SONAR_TOKEN="'+ sonarToken + '" ',
+                args: '--net="host" -e MAVEN_REMOTE_REPOSITORY='+ params.mavenRepository +
+                    ' -e SONAR_HOST_URL="' + sonarUrl + '" -e SONAR_TOKEN="'+ sonarToken + '" ',
                 toolName: env.DOCKER_TOOL_NAME
             ) {
               script {
