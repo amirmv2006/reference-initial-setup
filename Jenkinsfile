@@ -23,7 +23,7 @@ pipeline {
         }
 
         withDockerContainer(
-            image: 'maven:3-jdk-8',
+            image: 'maven:3-jdk-11',
             args: '--net="host" -e MAVEN_REMOTE_REPOSITORY='+ params.mavenRepository,
             toolName: env.DOCKER_TOOL_NAME
         ) {
@@ -56,7 +56,7 @@ pipeline {
           steps {
             script {
               withDockerContainer(
-                  image: 'maven:3-jdk-8',
+                  image: 'maven:3-jdk-11',
                   args: '--net="host" -e MAVEN_REMOTE_REPOSITORY='+ params.mavenRepository,
                   toolName: env.DOCKER_TOOL_NAME) {
                 sh 'curl -o /tmp/settings.xml https://raw.githubusercontent.com/amirmv2006/build-jenk/sandbox/generic-maven-settings.xml'
@@ -77,7 +77,7 @@ pipeline {
           agent { label 'master' }
           steps {
             withDockerContainer(
-                image: 'maven:3-jdk-8',
+                image: 'maven:3-jdk-11',
                 args: '--net="host" -e MAVEN_REMOTE_REPOSITORY='+ params.mavenRepository +
                     ' -e SONAR_HOST_URL="' + sonarUrl + '" -e SONAR_TOKEN="'+ sonarToken + '" ',
                 toolName: env.DOCKER_TOOL_NAME
