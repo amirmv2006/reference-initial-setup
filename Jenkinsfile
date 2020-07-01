@@ -10,7 +10,7 @@ pipeline {
     booleanParam(name: 'parallel', defaultValue: true, description: 'Run mvn in Parallel')
   }
   stages {
-    stage('Local Build') {
+    stage('Only Compile') {
       agent { label 'master' }
       steps {
         script { // https://issues.jenkins-ci.org/browse/JENKINS-41929
