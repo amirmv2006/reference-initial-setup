@@ -5,7 +5,8 @@ def sonarToken = '4c862f93839d8f4c88adea637d59d91967e8d5c7'
 pipeline {
   agent none
   parameters {
-    string(name: 'profile', defaultValue: 'Jenkins', description: 'Maven profiles to be specified')
+    string(name: 'profile', defaultValue: 'Jenkins', description: 'Maven profiles to be used when running maven build')
+    string(name: 'mavenRepository', defaultValue: 'http://localhost:9000', description: 'Remote Maven Repository')
     booleanParam(name: 'parallel', defaultValue: true, description: 'Run mvn in Parallel')
   }
   stages {
@@ -22,7 +23,7 @@ pipeline {
         }
         withDockerContainer(
             image: 'maven:3-jdk-8',
-            args: '--net="host" -e MAVEN_REMOTE_REPOSITORY=$MAVEN_REMOTE_REPOSITORY ',
+            args: "--net="host" -e MAVEN_REMOTE_REPOSITORY=${params.mavenRepository} ",
             toolName: env.DOCKER_TOOL_NAME
         ) {
           script {
@@ -55,7 +56,7 @@ pipeline {
             script {
               withDockerContainer(
                   image: 'maven:3-jdk-8',
-                  args: '--net="host" -e MAVEN_REMOTE_REPOSITORY=$MAVEN_REMOTE_REPOSITORY ',
+                  args: "--net="host" -e MAVEN_REMOTE_REPOSITORY=${params.mavenRepository} ",
                   toolName: env.DOCKER_TOOL_NAME) {
                 sh 'curl -o /tmp/settings.xml https://raw.githubusercontent.com/amirmv2006/build-jenk/sandbox/generic-maven-settings.xml'
                 def customSettings = '--settings /tmp/settings.xml'
@@ -76,7 +77,7 @@ pipeline {
           steps {
             withDockerContainer(
                 image: 'maven:3-jdk-8',
-                args: '--net="host" -e MAVEN_REMOTE_REPOSITORY=$MAVEN_REMOTE_REPOSITORY ' +
+                args: "--net="host" -e MAVEN_REMOTE_REPOSITORY=${params.mavenRepository} " +
                     '-e SONAR_HOST_URL="' + sonarUrl + '" -e SONAR_TOKEN="'+ sonarToken + '" ',
                 toolName: env.DOCKER_TOOL_NAME
             ) {
