@@ -22,7 +22,8 @@ RUN /usr/local/bin/install-plugins.sh \
     pam-auth \
     ldap \
     email-ext \
-    mailer
+    mailer \
+    docker-workflow
 
 # Plugins used by us
 RUN /usr/local/bin/install-plugins.sh \

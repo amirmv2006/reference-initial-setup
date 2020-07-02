@@ -1,0 +1,26 @@
+version: "3.8"
+services:
+  jenkins:
+    build:
+      context: ./amir-jenkins
+    user: root
+    volumes:
+    - "/var/run/docker.sock:/var/run/docker.sock"
+    - "amir-jenkins:/var/jenkins_home"
+    ports:
+    - "9090:8080"
+  sonar:
+    image: sonarqube
+    volumes:
+    - "sonar-conf:/opt/sonarqube/conf"
+    - "sonar-data:/opt/sonarqube/data"
+    - "sonar-logs:/opt/sonarqube/logs"
+    - "sonar-extensions:/opt/sonarqube/extensions"
+    ports:
+    - "9000:9000"
+volumes:
+  amir-jenkins:
+  sonar-conf:
+  sonar-data:
+  sonar-logs:
+  sonar-extensions:
