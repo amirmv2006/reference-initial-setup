@@ -82,7 +82,7 @@ pipeline {
               script {
                 sh 'curl -o /tmp/settings.xml https://raw.githubusercontent.com/amirmv2006/build-jenk/sandbox/generic-maven-settings.xml'
                 def customSettings = '--settings /tmp/settings.xml'
-                def profileArg = "-P ${params.profile}"
+                def profileArg = "-P Verify,${params.profile}"
                 def skipTestMvnParam = '-DskipIntegrationTests'
                 try{
                   withSonarQubeEnv(credentialsId: params.sonarCredentials, installationName: 'sonar') {
