@@ -95,7 +95,7 @@ pipeline {
                     // jacoco check is done on verify phase
                     sh "mvn -Dmaven.repo.local=.m2 verify $sonarGoal --no-transfer-progress $skipTestMvnParam $parallelParam $profileArg $customSettings"
                   }
-                  sleep(10) // copied from https://community.sonarsource.com/t/waitforqualitygate-timeout-in-jenkins/2116/9
+                  sleep(5) // copied from https://community.sonarsource.com/t/waitforqualitygate-timeout-in-jenkins/2116/9
                   timeout(time: 1, unit: 'HOURS') { // Just in case something goes wrong, pipeline will be killed after a timeout
                     def qg = waitForQualityGate() // Reuse taskId previously collected by withSonarQubeEnv
                     if (qg.status != 'OK') {
