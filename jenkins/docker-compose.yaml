@@ -8,7 +8,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - amir-jenkins:/var/jenkins_home/
     ports:
-      - "9999:8080"
+      - "9090:8080"
   sonar:
     image: sonarqube
     volumes:
