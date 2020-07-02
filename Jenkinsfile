@@ -1,13 +1,11 @@
 // A Jenkinsfile useful for Verification. Will run UnitTests+Sonar and IntegrationTests for the project
-def sonarUrl = 'http://localhost:9000/'
-def sonarToken = '4c862f93839d8f4c88adea637d59d91967e8d5c7'
-
 pipeline {
   agent none
   parameters {
     string(name: 'profile', defaultValue: 'Jenkins', description: 'Maven profiles to be used when running maven build')
-    string(name: 'mavenRepository', defaultValue: 'http://localhost:8081/repository/maven-public/', description: 'Remote Maven Repository')
+    string(name: 'mavenRepository', defaultValue: 'https://repo1.maven.org/maven2', description: 'Remote Maven Repository')
     booleanParam(name: 'parallel', defaultValue: true, description: 'Run mvn in Parallel')
+    credentials(name: 'sonarCredentials', defaultValue: 'sonar-token', credentialType: 'Secret text', description: 'Sonar Token')
   }
   stages {
     stage('Only Compile') {
@@ -24,7 +22,7 @@ pipeline {
 
         withDockerContainer(
             image: 'maven:3-jdk-11',
-            args: '--net="host" -e MAVEN_REMOTE_REPOSITORY='+ params.mavenRepository,
+            args: '--net="host" --add-host=sonar:127.0.0.1 -e MAVEN_REMOTE_REPOSITORY='+ params.mavenRepository,
             toolName: env.DOCKER_TOOL_NAME
         ) {
           script {
@@ -57,7 +55,7 @@ pipeline {
             script {
               withDockerContainer(
                   image: 'maven:3-jdk-11',
-                  args: '--net="host" -e MAVEN_REMOTE_REPOSITORY='+ params.mavenRepository,
+                  args: '--net="host" --add-host=sonar:127.0.0.1 -e MAVEN_REMOTE_REPOSITORY='+ params.mavenRepository,
                   toolName: env.DOCKER_TOOL_NAME) {
                 sh 'curl -o /tmp/settings.xml https://raw.githubusercontent.com/amirmv2006/build-jenk/sandbox/generic-maven-settings.xml'
                 def customSettings = '--settings /tmp/settings.xml'
@@ -78,8 +76,7 @@ pipeline {
           steps {
             withDockerContainer(
                 image: 'maven:3-jdk-11',
-                args: '--net="host" -e MAVEN_REMOTE_REPOSITORY='+ params.mavenRepository +
-                    ' -e SONAR_HOST_URL="' + sonarUrl + '" -e SONAR_TOKEN="'+ sonarToken + '" ',
+                args: '--net="host" --add-host=sonar:127.0.0.1 -e MAVEN_REMOTE_REPOSITORY='+ params.mavenRepository,
                 toolName: env.DOCKER_TOOL_NAME
             ) {
               script {
@@ -88,56 +85,27 @@ pipeline {
                 def profileArg = "-P ${params.profile}"
                 def skipTestMvnParam = '-DskipIntegrationTests'
                 try{
-                  withSonarQubeEnv(credentialsId: 'sonar-token', installationName: 'sonar') {
+                  withSonarQubeEnv(credentialsId: params.sonarCredentials, installationName: 'sonar') {
+                    withCredentials([string(credentialsId: params.sonarCredentials, variable: 'SONAR_TOKEN')]) {
+                    }
                     // You can override the credential to be used
-                    def sonarGoal = "sonar:sonar"
+                    def sonarGoal = 'sonar:sonar -Dsonar.login=$SONAR_TOKEN'
                     // unit tests should always be runnable in parallel, unless someone broke the law!
                     def parallelParam = '-T 2C'
                     // jacoco check is done on verify phase
                     sh "mvn -Dmaven.repo.local=.m2 verify $sonarGoal --no-transfer-progress $skipTestMvnParam $parallelParam $profileArg $customSettings"
                   }
+                  sleep(10) // copied from https://community.sonarsource.com/t/waitforqualitygate-timeout-in-jenkins/2116/9
+                  timeout(time: 1, unit: 'HOURS') { // Just in case something goes wrong, pipeline will be killed after a timeout
+                    def qg = waitForQualityGate() // Reuse taskId previously collected by withSonarQubeEnv
+                    if (qg.status != 'OK') {
+                      unstable("Sonar Quality Gate Failed: ${qg}")
+                    }
+                  }
                 } finally {
                   junit '**/target/surefire-reports/*.xml'
                 }
               }
-              timeout(1) {
-                waitUntil {
-                  script {
-                    fileExists('target/sonar/report-task.txt')
-                  }
-                }
-                script {
-                  def status = 'PENDING'
-                  waitUntil {
-                    def properties = readProperties file:'target/sonar/report-task.txt'
-                    def task_response = httpRequest properties.ceTaskUrl
-                    echo "Sonar Task JSON: ${task_response.content}"
-                    def task_data = readJSON text: task_response.content
-                    echo "JSON.task: ${task_data.task}"
-                    echo "JSON.task: ${task_data.task.status}"
-                    status = task_data.task.status
-                    status != "PENDING" && status != "IN_PROGRESS"
-                  }
-                  def properties = readProperties file:'target/sonar/report-task.txt'
-                  def analyses_response = httpRequest properties.ceTaskUrl.replaceAll("/api/ce/task", "/api/project_analyses/search?project=ir.amv.snippets%3Areference-initial-setup&")
-                  def analysesJson = readJSON text: analyses_response.content
-                  def analyses = analysesJson.analyses
-                  echo "$analyses"
-                  def found = false;
-                  for (def analize : analyses) {
-                    for (def event: analize.events) {
-                      if (event.category.equals('QUALITY_GATE')) {
-                        if (!found && event.name.startsWith("Red")) {
-                          unstable("Sonar Quality Gate Failed: ${event.name}")
-                          found = true
-                        } else if (!found) {
-                          found = true
-                        }
-                      }
-                    }
-                  }
-                }
-              } // end timeout
             } // withDockerContainer
           }
         } // end stage Run Sonar

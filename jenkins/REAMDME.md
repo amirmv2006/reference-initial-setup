@@ -1,10 +1,10 @@
 # Setup Local Jenkins
 You need Docker on your machine. Then we can set up Jenkins and Sonar to build this project.
 
-## Run Sonar 
-Use this command to run Sonar
+## Running Jenkins and Sonar
+Go to 'jenkins' folder on the root of the project. Use this command to run Jenkins+Sonar
 ```shell script
-docker run -d --restart unless-stopped --name amir-sonar -p 9000:9000 -v sonar-conf:/opt/sonarqube/conf -v sonar-data:/opt/sonarqube/data -v sonar-logs:/opt/sonarqube/logs -v sonar-extensions:/opt/sonarqube/extensions sonarqube
+docker-compose up -d
 ```
 In order for Jenkins to be able to communicate with Sonar, we need to create an authentication token. To do this, go
 to the [Sonar Tokens](http://localhost:9000/account/security/). The default username/password for Sonar is admin/admin. Under
@@ -12,12 +12,7 @@ to the [Sonar Tokens](http://localhost:9000/account/security/). The default user
  it on the Jenkins config.
 ![SonarGenerateToken](SonarTokenGenerate.png "Sonar Generate Token")
 
-## Run Jenkins
-Use this command to run Jenkins
-```shell script
-docker run -d --restart unless-stopped --name amir-jenkins -p 9090:8080 -u root -v /var/run/docker.sock:/var/run/docker.sock -v amir-jenkins:/var/jenkins_home amirmv2006/amir-jenkins
-```
-First let's config Sonar on Jenkins. Go to [New Credentials](http://localhost:9090/credentials/store/system/domain/_/newCredentials)
+Now we should config Sonar on Jenkins. Go to [New Credentials](http://localhost:9090/credentials/store/system/domain/_/newCredentials)
 and create a Secret Text for Sonar with these properties and click OK:
 ```yaml
 Kind: Secret text
@@ -28,7 +23,7 @@ Now go to [Configure Jenkins](http://localhost:9090/configure), look for "SonarQ
 on "Add SonarQube" and enter these properties Click Save on the bottom of the page:
 ```yaml
 Name: sonar
-Server URL: http://localhost:9000
+Server URL: http://sonar:9000
 Server authentication token: sonar-token
 ```
 Configuration almost over. Click on [Create a job](http://localhost:9090/newJob). Use 
@@ -39,6 +34,14 @@ Project Repository: https://github.com/amirmv2006/reference-initial-setup.git
 ```
 This will start cloning the Git repository and will create a job for each branch. You can select 
 the branch job and press build.
-### Known Jenkins Issue
+## Known Jenkins Issue
 The Jenkins multibranch pipeline has problems when it comes to Parameterized builds, so the first
-time the build is executed for each branch, it doesn't know yet about the parameters. 
+time the build is executed for each branch, it doesn't know yet about the parameters. To prevent 
+wrong execution of jenkins jobs, we will fail the first jenkins job indicating 'Parameter loading'.
+![JenkinsParameterLoading](JenkinsParameterLoading.png "Jenkins Parameter Loading")
+
+
+The other problem is, since sonar is configured to be running on name server 'sonar', when you
+click on Sonar links from Jenkins, you browser will point to http://sonar:9000/... what you need to
+do in this case is to just replace 'sonar' with 'localhost' and the the URL will become valid again.
+![JenkinsUrlProblem](JenkinsUrlProblem.gif "Jenkins Url Problem")
