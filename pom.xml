@@ -19,7 +19,7 @@
     <java.version>11</java.version>
     <it.skip>false</it.skip>
     <ut.skip>false</ut.skip>
-    <coverage.exclusion.category.1>**/*Config.*</coverage.exclusion.category.1>
+    <coverage.exclusion.category.1>**/*Application.*</coverage.exclusion.category.1>
 
     <!-- sonar properties -->
     <sonar.coverage.exclusions>
