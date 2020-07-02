@@ -19,6 +19,15 @@
     <java.version>11</java.version>
     <it.skip>false</it.skip>
     <ut.skip>false</ut.skip>
+    <coverage.exclusion.category.1>**/*Config.*</coverage.exclusion.category.1>
+
+    <!-- sonar properties -->
+    <sonar.coverage.exclusions>
+      ${coverage.exclusion.category.1}
+    </sonar.coverage.exclusions>
+    <sonar.cpd.exclusions>
+
+    </sonar.cpd.exclusions>
   </properties>
 
   <dependencies>
@@ -102,6 +111,61 @@
       <properties>
         <ut.skip>true</ut.skip>
       </properties>
+    </profile>
+    <profile>
+      <id>Verify</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-enforcer-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>dependency-checks</id>
+                <goals>
+                  <goal>enforce</goal>
+                </goals>
+                <configuration>
+                  <rules>
+                    <bannedDependencies>
+                      <excludes>
+                        <exclude>org.powermock:*</exclude>
+                        <exclude>org.slf4j:slf4j-nop</exclude>
+                      </excludes>
+                    </bannedDependencies>
+                    <dependencyConvergence/>
+                  </rules>
+                  <fail>true</fail>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>0.8.5</version>
+            <configuration>
+              <excludes>
+                <exclude>${coverage.exclusion.category.1}</exclude>
+              </excludes>
+            </configuration>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>prepare-agent</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>report</id>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>report</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
   </profiles>
 </project>
