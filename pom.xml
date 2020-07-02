@@ -76,6 +76,10 @@
           <name>skipTests</name>
         </property>
       </activation>
+      <properties>
+        <it.skip>true</it.skip>
+        <ut.skip>true</ut.skip>
+      </properties>
     </profile>
     <profile>
       <id>mavenSkipIntegrationTests</id>
@@ -84,6 +88,9 @@
           <name>skipIntegrationTests</name>
         </property>
       </activation>
+      <properties>
+        <it.skip>true</it.skip>
+      </properties>
     </profile>
     <profile>
       <id>mavenSkipUnitTests</id>
@@ -92,6 +99,9 @@
           <name>skipUnitTests</name>
         </property>
       </activation>
+      <properties>
+        <ut.skip>true</ut.skip>
+      </properties>
     </profile>
   </profiles>
 </project>
